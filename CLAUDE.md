@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Modo de trabajo
+- Siempre trabajar directamente en la rama `main`
+- NO crear ramas nuevas
+- NO crear Pull Requests
+- Hacer commit y push directo a `main` después de cada tarea
+
 ## What This App Is
 
 Gastos-app is a **vanilla JavaScript PWA** for couples to track shared expenses with real-time cloud sync. No build system, no npm — static files served directly. Language throughout is **Spanish** (UI labels, categories, variable names).
