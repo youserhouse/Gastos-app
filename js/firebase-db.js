@@ -23,8 +23,15 @@ function initFirebase() {
         if (perfilSnap.exists && perfilSnap.data().parejaId) {
           parejaId = perfilSnap.data().parejaId;
           const parejaSnap = await db.collection('parejas').doc(parejaId).get();
-          if (parejaSnap.exists) coupleData = parejaSnap.data();
-          mostrarSplashYArrancar();
+          if (parejaSnap.exists) {
+            coupleData = parejaSnap.data();
+            mostrarSplashYArrancar();
+          } else {
+            // Pareja borrada pero perfil de usuario no — limpiamos y mostramos onboarding
+            await USUARIO_DOC(user.uid).delete();
+            parejaId = null;
+            mostrarOnboarding();
+          }
         } else {
           mostrarOnboarding();
         }
