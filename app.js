@@ -126,12 +126,12 @@ function renderThemeSwatches() {
 // TODO: Move to environment variables / config.local.js (see .env.example)
 // SECURITY: Do not commit real keys to version control
 const firebaseConfig = {
-  apiKey: "AIzaSyANlZleUp1jS1iT9QpDKgVQvMk76zVKnJo",
-  authDomain: "gastos-en-pareja-e2f3c.firebaseapp.com",
-  projectId: "gastos-en-pareja-e2f3c",
-  storageBucket: "gastos-en-pareja-e2f3c.firebasestorage.app",
-  messagingSenderId: "134933655955",
-  appId: "1:134933655955:web:06777421bd1fa4ba777866"
+  apiKey: "AIzaSyCd5hm1WMp-8gwqpuAFnM8ThFfgSpyRQfw",
+  authDomain: "gastos-pareja-app.firebaseapp.com",
+  projectId: "gastos-pareja-app",
+  storageBucket: "gastos-pareja-app.firebasestorage.app",
+  messagingSenderId: "715060740358",
+  appId: "1:715060740358:web:c52fa3d4555584d1615e87"
 };
 
 // Firebase instances — initialized lazily inside initFirebase()
