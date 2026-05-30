@@ -118,6 +118,31 @@
   </div>
 </div>
 
+<!-- ══ ONBOARDING — shown when user has no couple assigned ══════ -->
+<div class="login-screen" id="onboardingScreen" style="display:none">
+  <div class="login-box">
+    <h1>Bienvenido a<br><em style="color:var(--teal-light)">Control de Gastos</em></h1>
+    <p style="margin-bottom:1.5rem">Gestiona los gastos con tu pareja en tiempo real</p>
+
+    <div id="onboardingOpciones">
+      <button class="login-btn" onclick="crearPareja()">➕ Crear nueva pareja</button>
+      <button class="login-btn secondary" onclick="toggleCodigoInput()">🔗 Tengo un código de invitación</button>
+    </div>
+
+    <div id="onboardingCodigo" style="display:none">
+      <input class="login-input" id="codigoInput" type="text"
+        placeholder="Código (ej: AB12CD)" maxlength="6"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')unirsePareja()"
+        style="text-transform:uppercase;letter-spacing:.25em;text-align:center;font-size:1.15rem;font-family:var(--font-mono,monospace)">
+      <button class="login-btn" onclick="unirsePareja()">Unirme a la pareja</button>
+      <button class="login-btn secondary" onclick="toggleCodigoInput()">← Volver</button>
+    </div>
+
+    <div class="login-err" id="onboardingErr"></div>
+  </div>
+</div>
+
 <header>
   <div style="display:flex;align-items:center;gap:.4rem;min-width:0">
     <div class="logo" style="font-size:1.1rem;white-space:nowrap">Gastos <em>Pareja</em></div>
@@ -343,6 +368,14 @@
   </div>
 
   
+  <!-- MI PAREJA -->
+  <div class="card" style="margin-bottom:1.25rem" id="cardMiPareja">
+    <div class="card-title">Mi Pareja</div>
+    <div id="infoPareja">
+      <!-- renderInfoPareja() populates this -->
+    </div>
+  </div>
+
   <!-- Color Theme Selector -->
   <div class="card" style="margin-bottom:1.25rem">
     <div class="card-title">Tema de color</div>

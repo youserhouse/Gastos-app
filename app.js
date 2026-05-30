@@ -137,7 +137,13 @@ const firebaseConfig = {
 // Firebase instances — initialized lazily inside initFirebase()
 let db   = null;
 let auth = null;
-const SHARED_DOC = () => db.collection('parejas').doc('shared');
+
+// Multi-couple: parejaId resolved after onboarding or profile lookup
+let parejaId  = null;
+let coupleData = null; // { codigo, miembros, creadoEn }
+
+const PAREJA_DOC  = () => db.collection('parejas').doc(parejaId);
+const USUARIO_DOC = (uid) => db.collection('usuarios').doc(uid);
 
 function initFirebase() {
   if (typeof firebase === 'undefined') {
@@ -149,30 +155,35 @@ function initFirebase() {
   auth = firebase.auth();
 
   // Auth state listener — set up after SDK ready
-  auth.onAuthStateChanged(user => {
+  auth.onAuthStateChanged(async user => {
     const loginScreen = document.getElementById('loginScreen');
     const logoutBtn   = document.getElementById('logoutBtn');
     if (user) {
       loginScreen.style.display = 'none';
       logoutBtn.style.display = 'block';
       updateLoginNames();
-      // Show splash for 3 seconds
-      const splash = document.getElementById('splashScreen');
-      splash.style.display = 'flex';
-      requestAnimationFrame(() => setTimeout(() => {
-        const bar = document.getElementById('splashProgressBar');
-        if (bar) bar.style.width = '100%';
-      }, 50));
-      setTimeout(() => {
-        splash.style.opacity = '0';
-        splash.style.transition = 'opacity .6s ease';
-        setTimeout(() => { splash.style.display = 'none'; }, 600);
-      }, 3000);
-      initFirestoreSync();
+      // Check if user already belongs to a couple
+      try {
+        const perfilSnap = await USUARIO_DOC(user.uid).get();
+        if (perfilSnap.exists && perfilSnap.data().parejaId) {
+          parejaId = perfilSnap.data().parejaId;
+          const parejaSnap = await db.collection('parejas').doc(parejaId).get();
+          if (parejaSnap.exists) coupleData = parejaSnap.data();
+          mostrarSplashYArrancar();
+        } else {
+          mostrarOnboarding();
+        }
+      } catch(e) {
+        console.error('Error cargando perfil de usuario:', e);
+        mostrarOnboarding();
+      }
     } else {
+      ocultarOnboarding();
       loginScreen.style.display = 'flex';
       logoutBtn.style.display = 'none';
       if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
+      parejaId   = null;
+      coupleData = null;
       setSyncStatus('offline');
     }
   });
@@ -260,19 +271,21 @@ let _isSaving = false;
 
 function initFirestoreSync() {
   setSyncStatus('syncing');
-  // Real-time listener — updates app whenever cloud data changes
-  _unsubscribe = SHARED_DOC().onSnapshot(doc => {
-    if (_isSaving) return; // ignore our own writes
+  _unsubscribe = PAREJA_DOC().onSnapshot(doc => {
+    if (_isSaving) return;
     if (doc.exists) {
       const data = doc.data();
-      // Fix any bad dates in existing data
+      // Sync couple metadata if the document has it
+      if (data.miembros || data.codigo) {
+        coupleData = { codigo: data.codigo, miembros: data.miembros, creadoEn: data.creadoEn };
+        renderInfoPareja();
+      }
       state.gastos       = (data.gastos || []).map(g => ({ ...g, date: fixDate(g.date) }));
       state.ingresos     = data.ingresos     || [];
       state.presupuestos = data.presupuestos || [];
       state.cats         = data.cats         || DEFAULT_CATS;
       state.config       = data.config       || { p1: '', p2: '' };
       updateLoginNames();
-      // Refresh UI
       populateSelects();
       populatePayers();
       applyConfig();
@@ -281,7 +294,6 @@ function initFirestoreSync() {
       renderIngresos();
       setSyncStatus('online');
     } else {
-      // First time — push local state to cloud
       cloudSave();
     }
   }, err => {
@@ -291,17 +303,19 @@ function initFirestoreSync() {
 }
 
 async function cloudSave() {
+  if (!parejaId) return;
   _isSaving = true;
   setSyncStatus('syncing');
   try {
-    await SHARED_DOC().set({
+    // merge:true preserves couple metadata fields (miembros, codigo, creadoEn)
+    await PAREJA_DOC().set({
       gastos:       state.gastos,
       ingresos:     state.ingresos,
       presupuestos: state.presupuestos || [],
       cats:         state.cats || DEFAULT_CATS,
       config:       state.config,
       updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    }, { merge: true });
     setSyncStatus('online');
   } catch(e) {
     console.error('Save error:', e);
@@ -318,6 +332,206 @@ function setSyncStatus(status) {
   if (!dot) return;
   dot.className = 'sync-dot' + (status === 'offline' ? ' offline' : status === 'syncing' ? ' syncing' : '');
   label.textContent = status === 'online' ? 'sync ✓' : status === 'syncing' ? 'guardando…' : 'sin conexión';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MULTIPAREJA — onboarding, couple management, legacy migration
+// ═══════════════════════════════════════════════════════════════════
+
+function generarCodigo() {
+  // Characters chosen to avoid visual ambiguity (no 0/O, 1/I/L)
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function mostrarOnboarding() {
+  document.getElementById('onboardingScreen').style.display = 'flex';
+}
+
+function ocultarOnboarding() {
+  const el = document.getElementById('onboardingScreen');
+  if (el) el.style.display = 'none';
+}
+
+function toggleCodigoInput() {
+  const wrap = document.getElementById('onboardingCodigo');
+  const opts = document.getElementById('onboardingOpciones');
+  const mostrar = wrap.style.display === 'none' || !wrap.style.display;
+  wrap.style.display = mostrar ? 'block' : 'none';
+  opts.style.display = mostrar ? 'none' : 'block';
+  if (mostrar) document.getElementById('codigoInput').focus();
+  setOnboardingErr('');
+}
+
+function setOnboardingErr(msg) {
+  const el = document.getElementById('onboardingErr');
+  if (el) el.textContent = msg;
+}
+
+function mostrarSplashYArrancar() {
+  const splash = document.getElementById('splashScreen');
+  splash.style.display = 'flex';
+  requestAnimationFrame(() => setTimeout(() => {
+    const bar = document.getElementById('splashProgressBar');
+    if (bar) bar.style.width = '100%';
+  }, 50));
+  setTimeout(() => {
+    splash.style.opacity = '0';
+    splash.style.transition = 'opacity .6s ease';
+    setTimeout(() => { splash.style.display = 'none'; }, 600);
+  }, 3000);
+  initFirestoreSync();
+  renderInfoPareja();
+}
+
+function iniciarAppTrasOnboarding() {
+  migrarDatosLegacy();
+  initFirestoreSync();
+  renderInfoPareja();
+}
+
+async function crearPareja() {
+  const user = auth.currentUser;
+  if (!user) return;
+  setOnboardingErr('');
+  const btns = document.querySelectorAll('#onboardingOpciones button');
+  btns.forEach(b => b.disabled = true);
+
+  try {
+    let codigo;
+    let intentos = 0;
+    do {
+      codigo = generarCodigo();
+      const snap = await db.collection('parejas').doc(codigo).get();
+      if (!snap.exists) break;
+    } while (++intentos < 5);
+
+    const meta = {
+      miembros:  [user.uid],
+      creadoEn:  firebase.firestore.FieldValue.serverTimestamp(),
+      codigo,
+    };
+    await db.collection('parejas').doc(codigo).set(meta);
+    await USUARIO_DOC(user.uid).set({ parejaId: codigo }, { merge: true });
+
+    parejaId   = codigo;
+    coupleData = { ...meta, creadoEn: new Date() };
+    ocultarOnboarding();
+    iniciarAppTrasOnboarding();
+    showToast(`✓ Pareja creada — código: ${codigo}`);
+  } catch(e) {
+    console.error(e);
+    setOnboardingErr('Error al crear la pareja. Inténtalo de nuevo.');
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+async function unirsePareja() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const codigo = (document.getElementById('codigoInput').value || '').trim().toUpperCase();
+  if (codigo.length !== 6) return setOnboardingErr('El código debe tener exactamente 6 caracteres');
+  setOnboardingErr('');
+
+  const btns = document.querySelectorAll('#onboardingCodigo button');
+  btns.forEach(b => b.disabled = true);
+
+  try {
+    const snap = await db.collection('parejas').doc(codigo).get();
+    if (!snap.exists) {
+      setOnboardingErr('Código no encontrado. Comprueba que está bien escrito.');
+      btns.forEach(b => b.disabled = false);
+      return;
+    }
+    const data = snap.data();
+    if (data.miembros && data.miembros.length >= 2) {
+      setOnboardingErr('Esta pareja ya tiene 2 miembros.');
+      btns.forEach(b => b.disabled = false);
+      return;
+    }
+    const nuevos = [...(data.miembros || []), user.uid];
+    await db.collection('parejas').doc(codigo).update({ miembros: nuevos });
+    await USUARIO_DOC(user.uid).set({ parejaId: codigo }, { merge: true });
+
+    parejaId   = codigo;
+    coupleData = { ...data, miembros: nuevos };
+    ocultarOnboarding();
+    iniciarAppTrasOnboarding();
+    showToast('✓ Te has unido a la pareja');
+  } catch(e) {
+    console.error(e);
+    setOnboardingErr('Error al unirse. Inténtalo de nuevo.');
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+async function migrarDatosLegacy() {
+  if (localStorage.getItem('gp_legacy_migrated') || !parejaId) return;
+  try {
+    const legacySnap = await db.collection('parejas').doc('shared').get();
+    if (!legacySnap.exists) { localStorage.setItem('gp_legacy_migrated', '1'); return; }
+
+    const targetSnap = await PAREJA_DOC().get();
+    const targetData = targetSnap.exists ? (targetSnap.data().gastos || []) : [];
+    if (targetData.length > 0) { localStorage.setItem('gp_legacy_migrated', '1'); return; }
+
+    const legacy = legacySnap.data();
+    await PAREJA_DOC().set({
+      gastos:       legacy.gastos       || [],
+      ingresos:     legacy.ingresos     || [],
+      presupuestos: legacy.presupuestos || [],
+      cats:         legacy.cats         || DEFAULT_CATS,
+      config:       legacy.config       || { p1: '', p2: '' },
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    localStorage.setItem('gp_legacy_migrated', '1');
+    showToast('✓ Hemos migrado tus datos al nuevo formato');
+  } catch(e) {
+    console.error('Migración legacy fallida:', e);
+  }
+}
+
+function renderInfoPareja() {
+  const el = document.getElementById('infoPareja');
+  if (!el || !parejaId) return;
+  const miembros = (coupleData?.miembros || []).length;
+  const llena    = miembros >= 2;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;padding:.85rem 1rem;background:rgba(45,106,106,0.15);border:1px solid rgba(125,191,191,0.2);border-radius:.75rem">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.72rem;color:var(--gray);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.05em">Código de invitación</div>
+        <div style="font-family:var(--font-mono,monospace);font-size:1.5rem;font-weight:700;letter-spacing:.25em;color:var(--teal-light)">${parejaId}</div>
+      </div>
+      <button class="pill-btn" onclick="copiarCodigo()" style="flex-shrink:0;padding:.45rem .8rem;font-size:.78rem">📋 Copiar</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;font-size:.83rem;color:var(--gray);border-bottom:1px solid rgba(125,191,191,0.1)">
+      <span>Miembros</span>
+      <span style="font-weight:600;color:${llena ? '#5ABEA0' : '#E0A030'}">${miembros}/2 ${llena ? '✓' : ''}</span>
+    </div>
+    ${!llena ? `<p style="font-size:.8rem;color:#E0A030;margin-top:.75rem;padding:.65rem .8rem;background:rgba(224,160,48,0.08);border:1px solid rgba(224,160,48,0.2);border-radius:.55rem;line-height:1.5">
+      Comparte este código con tu pareja para que se una a la cuenta.
+    </p>` : ''}
+  `;
+}
+
+function copiarCodigo() {
+  if (!parejaId) return;
+  const texto = parejaId;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(texto).then(() => showToast('✓ Código copiado al portapapeles'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✓ Código copiado');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -460,7 +674,7 @@ function switchTab(name) {
   if (name==='lista') renderLista();
   if (name==='ingresos') renderIngresos();
   if (name==='presupuesto') { onBudgetTypeChange(); renderBudgetRows(); renderSavedBudgets(); }
-  if (name==='config') { renderThemeSwatches(); loadAnthropicKeyToInput(); }
+  if (name==='config') { renderThemeSwatches(); loadAnthropicKeyToInput(); renderInfoPareja(); }
   // Show API key warning banner in scanner tab if key is set
   if (name==='scanner') {
     const warn = document.getElementById('scanner-api-warning');
@@ -1011,7 +1225,7 @@ function clearData() {
   state = { gastos:[], ingresos:[], presupuestos:[], config:{ p1:'', p2:'' } };
   save();
   if (auth.currentUser) {
-    SHARED_DOC().delete().then(() => location.reload());
+    PAREJA_DOC().delete().then(() => location.reload());
   } else {
     location.reload();
   }
