@@ -95,7 +95,10 @@ function clearData() {
   state = { gastos:[], ingresos:[], presupuestos:[], config:{ p1:'', p2:'' } };
   save();
   if (auth.currentUser) {
-    PAREJA_DOC().delete().then(() => location.reload());
+    const user = auth.currentUser;
+    const borrarPareja  = parejaId ? PAREJA_DOC().delete() : Promise.resolve();
+    const borrarPerfil  = USUARIO_DOC(user.uid).delete();
+    Promise.all([borrarPareja, borrarPerfil]).finally(() => location.reload());
   } else {
     location.reload();
   }
