@@ -53,7 +53,7 @@ Real-time sync uses a Firestore `onSnapshot()` listener on a single shared docum
 The app calls the Anthropic API **directly from the browser** using a key the user enters in Settings. The key is stored in `localStorage`. The model is `claude-sonnet-4-5`. See `SECURITY.md` — this is a known client-side exposure risk.
 
 ### Firebase config
-Firebase credentials are hardcoded in `app.js`. The keys are domain-restricted and intended to be public-facing (Firebase's standard browser-client pattern). See `SECURITY.md` for details.
+Firebase credentials are hardcoded in `app.js` (project: `gastos-pareja-app`). The keys are domain-restricted and intended to be public-facing (Firebase's standard browser-client pattern). See `SECURITY.md` for details.
 
 ## Key Conventions
 
