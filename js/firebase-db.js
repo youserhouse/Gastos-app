@@ -79,6 +79,7 @@ function initFirestoreSync() {
       renderDashboard();
       renderLista();
       renderIngresos();
+      renderMesSelect();
       setSyncStatus('online');
     } else {
       cloudSave();
