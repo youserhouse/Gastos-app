@@ -88,6 +88,39 @@ function saveConfig() {
   showToast('✓ Configuración guardada');
 }
 
+function renderMesSelect() {
+  const sel = document.getElementById('mesBorrarSelect');
+  if (!sel) return;
+  const meses = new Set();
+  (state.gastos   || []).forEach(g => { if (g.date)  meses.add(g.date.slice(0, 7)); });
+  (state.ingresos || []).forEach(i => { if (i.month) meses.add(i.month.slice(0, 7)); });
+  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const sorted = [...meses].sort().reverse();
+  sel.innerHTML = '<option value="">— Selecciona un mes —</option>' +
+    sorted.map(m => {
+      const [y, mo] = m.split('-');
+      return `<option value="${m}">${nombres[parseInt(mo, 10) - 1]} ${y}</option>`;
+    }).join('');
+}
+
+function borrarMes() {
+  const sel = document.getElementById('mesBorrarSelect');
+  const mes = sel?.value;
+  if (!mes) return showToast('Selecciona un mes primero', 'err');
+  const [y, mo] = mes.split('-');
+  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const nombreMes = `${nombres[parseInt(mo, 10) - 1]} ${y}`;
+  if (!confirm(`¿Borrar todos los gastos e ingresos de ${nombreMes}? Esta acción no se puede deshacer.`)) return;
+  state.gastos   = (state.gastos   || []).filter(g => !g.date?.startsWith(mes));
+  state.ingresos = (state.ingresos || []).filter(i => !(i.month || '').startsWith(mes));
+  save();
+  renderMesSelect();
+  renderDashboard();
+  renderLista();
+  renderIngresos();
+  showToast(`✓ Datos de ${nombreMes} eliminados`);
+}
+
 function clearData() {
   if (!confirm('⚠️ ¿Estás seguro de que quieres borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
   const typed = prompt('Escribe BORRAR para confirmar:');
