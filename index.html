@@ -21,6 +21,45 @@
 </head>
 <body>
 
+<!-- Delete Month Modal -->
+<div class="modal-bg" id="deleteMonthModal">
+  <div class="modal-box" style="max-width:380px">
+    <h2>🗑 Borrar datos de un mes</h2>
+    <p style="font-size:.84rem;color:var(--gray);margin-bottom:1.25rem;line-height:1.6">
+      Se borrarán los gastos e ingresos del mes seleccionado.<br>
+      Las categorías y presupuestos <strong style="color:var(--white)">no</strong> se verán afectados.
+    </p>
+    <div class="form-group" style="margin-bottom:.75rem">
+      <label>Mes a borrar</label>
+      <input type="month" id="deleteMonthInput" style="width:100%" oninput="_updateDeleteMonthPreview()">
+    </div>
+    <div id="deleteMonthPreview" style="font-size:.82rem;color:var(--teal-light);margin-bottom:1.25rem;min-height:1.2em"></div>
+    <div style="display:flex;gap:.75rem">
+      <button class="submit-btn" onclick="confirmDeleteMonth()" style="flex:1;background:rgba(201,64,64,0.5)">✂️ Borrar mes</button>
+      <button class="submit-btn" onclick="closeModal('deleteMonthModal')" style="background:rgba(255,255,255,0.08);box-shadow:none">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bank Import Modal -->
+<div class="modal-bg" id="bankImportModal">
+  <div class="modal-box" style="max-width:420px">
+    <h2>🏦 Importar extracto bancario</h2>
+    <p style="font-size:.83rem;color:var(--gray);margin-bottom:1rem;line-height:1.6">
+      Sube el archivo de tu banco (.xlsx, .xls o .csv). Los gastos se importan en la categoría <em>Otros</em> — puedes reclasificarlos después.
+    </p>
+    <div class="form-group" style="margin-bottom:.75rem">
+      <label class="form-label">Archivo del banco</label>
+      <input type="file" id="bankFileInput" accept=".xlsx,.xls,.csv"
+             style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem;font-size:.84rem"
+             onchange="handleBankFile(this)">
+    </div>
+    <div id="bankPreviewWrap"></div>
+    <button class="submit-btn" onclick="closeModal('bankImportModal')"
+            style="margin-top:.5rem;width:100%;background:rgba(255,255,255,0.08);box-shadow:none">Cerrar</button>
+  </div>
+</div>
+
 <!-- Edit modal -->
 <div class="modal-bg" id="editModal">
   <div class="modal-box">
@@ -410,15 +449,8 @@
         <button class="submit-btn" onclick="exportCSV()" style="flex:1">↓ Exportar CSV completo</button>
         <label class="submit-btn" for="importFileInput" style="flex:1;background:rgba(74,144,144,0.3);box-shadow:none;cursor:pointer;text-align:center">↑ Importar CSV</label>
       </div>
-      <div style="margin-top:.75rem">
-        <label class="form-label" style="margin-bottom:.4rem;display:block">Borrar datos por mes</label>
-        <div style="display:flex;gap:.5rem;align-items:center">
-          <select id="mesBorrarSelect" style="flex:1;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.55rem .75rem;font-size:.85rem">
-            <option value="">— Selecciona un mes —</option>
-          </select>
-          <button onclick="borrarMes()" style="flex-shrink:0;padding:.55rem .9rem;background:rgba(201,64,64,0.3);color:var(--white);border:none;border-radius:.6rem;cursor:pointer;font-size:.85rem">🗑</button>
-        </div>
-      </div>
+      <button class="submit-btn" onclick="openBankImport()" style="margin-top:.75rem;background:rgba(74,144,144,0.25);box-shadow:none">🏦 Importar extracto bancario</button>
+      <button class="submit-btn" onclick="openDeleteMonth()" style="margin-top:.5rem;background:rgba(201,64,64,0.3);box-shadow:none">🗑 Borrar datos de un mes</button>
     </div>
   </div>
 
@@ -502,6 +534,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK — must load before app script -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -516,6 +549,7 @@
 <script src="js/presupuestos.js" defer></script>
 <script src="js/scanner.js" defer></script>
 <script src="js/config-panel.js" defer></script>
+<script src="js/bank-import.js" defer></script>
 <script src="js/main.js" defer></script>
 </body>
 </html>

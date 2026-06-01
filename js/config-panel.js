@@ -88,37 +88,37 @@ function saveConfig() {
   showToast('✓ Configuración guardada');
 }
 
-function renderMesSelect() {
-  const sel = document.getElementById('mesBorrarSelect');
-  if (!sel) return;
-  const meses = new Set();
-  (state.gastos   || []).forEach(g => { if (g.date)  meses.add(g.date.slice(0, 7)); });
-  (state.ingresos || []).forEach(i => { if (i.month) meses.add(i.month.slice(0, 7)); });
-  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const sorted = [...meses].sort().reverse();
-  sel.innerHTML = '<option value="">— Selecciona un mes —</option>' +
-    sorted.map(m => {
-      const [y, mo] = m.split('-');
-      return `<option value="${m}">${nombres[parseInt(mo, 10) - 1]} ${y}</option>`;
-    }).join('');
+function openDeleteMonth() {
+  const now = new Date();
+  const cur = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  document.getElementById('deleteMonthInput').value = cur;
+  _updateDeleteMonthPreview();
+  openModal('deleteMonthModal');
 }
 
-function borrarMes() {
-  const sel = document.getElementById('mesBorrarSelect');
-  const mes = sel?.value;
-  if (!mes) return showToast('Selecciona un mes primero', 'err');
-  const [y, mo] = mes.split('-');
-  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const nombreMes = `${nombres[parseInt(mo, 10) - 1]} ${y}`;
-  if (!confirm(`¿Borrar todos los gastos e ingresos de ${nombreMes}? Esta acción no se puede deshacer.`)) return;
-  state.gastos   = (state.gastos   || []).filter(g => !g.date?.startsWith(mes));
-  state.ingresos = (state.ingresos || []).filter(i => !(i.month || '').startsWith(mes));
+function _updateDeleteMonthPreview() {
+  const val = document.getElementById('deleteMonthInput').value;
+  const el  = document.getElementById('deleteMonthPreview');
+  if (!val) { el.textContent = ''; return; }
+  const ng = (state.gastos   || []).filter(g => g.date  && g.date.startsWith(val)).length;
+  const ni = (state.ingresos || []).filter(i => i.month && i.month.startsWith(val)).length;
+  el.textContent = ng + ni === 0
+    ? 'No hay datos en ese mes.'
+    : `Se borrarán ${ng} gasto${ng !== 1 ? 's' : ''} y ${ni} ingreso${ni !== 1 ? 's' : ''}.`;
+}
+
+function confirmDeleteMonth() {
+  const val = document.getElementById('deleteMonthInput').value;
+  if (!val) { showToast('Selecciona un mes', 'err'); return; }
+  const [y, m] = val.split('-');
+  const label = new Date(+y, +m - 1, 1).toLocaleDateString('es', { month: 'long', year: 'numeric' });
+  if (!confirm(`¿Borrar todos los gastos e ingresos de ${label}? Esta acción no se puede deshacer.`)) return;
+  state.gastos   = (state.gastos   || []).filter(g => !(g.date  && g.date.startsWith(val)));
+  state.ingresos = (state.ingresos || []).filter(i => !(i.month && i.month.startsWith(val)));
   save();
-  renderMesSelect();
-  renderDashboard();
-  renderLista();
-  renderIngresos();
-  showToast(`✓ Datos de ${nombreMes} eliminados`);
+  closeModal('deleteMonthModal');
+  renderDashboard(); renderLista(); renderIngresos();
+  showToast(`✓ Datos de ${label} borrados`);
 }
 
 function clearData() {
