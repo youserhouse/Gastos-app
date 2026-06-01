@@ -3,8 +3,13 @@
 function openBankImport() {
   document.getElementById('bankFileInput').value = '';
   document.getElementById('bankPreviewWrap').innerHTML = '';
+  document.getElementById('bankIgnorePositive').checked = true;
   window._bankImportItems = null;
   openModal('bankImportModal');
+}
+
+function _onBankOptionsChange() {
+  if (window._bankImportItems) _renderBankPreview(window._bankImportItems);
 }
 
 function handleBankFile(input) {
@@ -139,49 +144,61 @@ function _parseAmt(raw) {
 }
 
 function _renderBankPreview(items) {
-  const gastos   = items.filter(i => i.type === 'gasto');
-  const ingresos = items.filter(i => i.type === 'ingreso');
-  const payers   = [state.config.p1, state.config.p2].filter(Boolean);
+  const ignorePos = document.getElementById('bankIgnorePositive')?.checked ?? true;
+  const visible   = ignorePos ? items.filter(i => i.type === 'gasto') : items;
+  const gastos    = visible.filter(i => i.type === 'gasto');
+  const ingresos  = visible.filter(i => i.type === 'ingreso');
+  const payers    = [state.config.p1, state.config.p2].filter(Boolean);
+  const cats      = getCats().map(c => c.name);
+  const defCat    = cats[cats.length - 1] || 'Otros';
 
   document.getElementById('bankPreviewWrap').innerHTML = `
-    <p style="font-size:.82rem;color:var(--gray);margin-bottom:.6rem">
-      Encontradas: <strong style="color:var(--white)">${gastos.length} gastos</strong>
-      ${ingresos.length ? ` y <strong style="color:var(--teal-light)">${ingresos.length} ingresos</strong>` : ''}
+    <p style="font-size:.82rem;color:var(--accent);font-weight:600;margin-bottom:.5rem">
+      Vista previa — ${gastos.length} gasto${gastos.length!==1?'s':''} encontrado${gastos.length!==1?'s':''}
+      ${ingresos.length ? ` y ${ingresos.length} ingreso${ingresos.length!==1?'s':''}` : ''}
     </p>
     <div style="max-height:200px;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:.5rem;margin-bottom:.75rem">
       <table style="width:100%;border-collapse:collapse;font-size:.77rem">
         <thead><tr style="background:rgba(255,255,255,0.06)">
           <th style="padding:.35rem .5rem;text-align:left;color:var(--gray)">Fecha</th>
-          <th style="padding:.35rem .5rem;text-align:left;color:var(--gray)">Concepto</th>
           <th style="padding:.35rem .5rem;text-align:right;color:var(--gray)">Importe</th>
+          <th style="padding:.35rem .5rem;text-align:left;color:var(--gray)">Concepto</th>
         </tr></thead>
         <tbody>
-          ${items.slice(0,60).map(it=>`
+          ${visible.slice(0,60).map(it=>`
             <tr style="border-top:1px solid rgba(255,255,255,0.04)">
               <td style="padding:.3rem .5rem;color:var(--gray);white-space:nowrap">${it.date}</td>
-              <td style="padding:.3rem .5rem;color:var(--white);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.desc}">${it.desc||'—'}</td>
-              <td style="padding:.3rem .5rem;text-align:right;font-family:var(--font-mono,monospace);color:${it.amt<0?'#E05555':'#5ABEA0'}">${fmt(Math.abs(it.amt))}</td>
+              <td style="padding:.3rem .5rem;text-align:right;font-family:var(--font-mono,monospace);color:${it.amt<0?'#E05555':'#5ABEA0'};white-space:nowrap">${fmt(Math.abs(it.amt))}</td>
+              <td style="padding:.3rem .5rem;color:var(--white);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.desc}">${it.desc||'—'}</td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>
-    ${items.length>60?`<p style="font-size:.74rem;color:var(--gray);margin-bottom:.6rem">Mostrando 60 de ${items.length} transacciones</p>`:''}
-    <label class="form-label">Titular de la cuenta</label>
+    ${visible.length>60?`<p style="font-size:.74rem;color:var(--gray);margin-bottom:.5rem">Mostrando 60 de ${visible.length} transacciones</p>`:''}
+    <label class="form-label" style="margin-bottom:.3rem">Categoría por defecto</label>
+    <select id="bankImportCat" style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem;margin-bottom:.75rem">
+      ${cats.map(c=>`<option value="${c}"${c===defCat?' selected':''}>${c}</option>`).join('')}
+    </select>
+    <label class="form-label" style="margin-bottom:.3rem">Pagado por</label>
     <select id="bankImportPayer" style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem;margin-bottom:.75rem">
       ${payers.map(p=>`<option value="${p}">${p}</option>`).join('')}
     </select>
-    <button class="submit-btn" onclick="confirmBankImport()" style="width:100%">
-      ✅ Importar ${items.length} transacciones
-    </button>
+    <div style="display:flex;gap:.75rem">
+      <button class="submit-btn" onclick="confirmBankImport()" style="flex:1">
+        ✓ Importar ${gastos.length} gasto${gastos.length!==1?'s':''}${ingresos.length?` y ${ingresos.length} ingreso${ingresos.length!==1?'s':''}`:''}
+      </button>
+      <button class="submit-btn" onclick="closeModal('bankImportModal')" style="flex:1;background:rgba(255,255,255,0.08);box-shadow:none">Cancelar</button>
+    </div>
   `;
 }
 
 function confirmBankImport() {
-  const items  = window._bankImportItems || [];
-  if (!items.length) return;
-  const payer  = document.getElementById('bankImportPayer')?.value || state.config.p1 || '';
-  const cats   = getCats();
-  const defCat = cats[cats.length - 1]?.name || 'Otros';
+  const allItems  = window._bankImportItems || [];
+  if (!allItems.length) return;
+  const ignorePos = document.getElementById('bankIgnorePositive')?.checked ?? true;
+  const items     = ignorePos ? allItems.filter(i => i.type === 'gasto') : allItems;
+  const payer     = document.getElementById('bankImportPayer')?.value || state.config.p1 || '';
+  const cat       = document.getElementById('bankImportCat')?.value || 'Otros';
   let added = 0;
 
   items.forEach(item => {
@@ -190,7 +207,7 @@ function confirmBankImport() {
         id:    uid(),
         date:  item.date,
         store: item.desc || 'Importado',
-        cat:   defCat,
+        cat,
         amt:   Math.abs(item.amt),
         payer,
         type:  'variable',
