@@ -21,6 +21,26 @@
 </head>
 <body>
 
+<!-- Delete Month Modal -->
+<div class="modal-bg" id="deleteMonthModal">
+  <div class="modal-box" style="max-width:380px">
+    <h2>🗑 Borrar datos de un mes</h2>
+    <p style="font-size:.84rem;color:var(--gray);margin-bottom:1.25rem;line-height:1.6">
+      Se borrarán los gastos e ingresos del mes seleccionado.<br>
+      Las categorías y presupuestos <strong style="color:var(--white)">no</strong> se verán afectados.
+    </p>
+    <div class="form-group" style="margin-bottom:.75rem">
+      <label>Mes a borrar</label>
+      <input type="month" id="deleteMonthInput" style="width:100%" oninput="_updateDeleteMonthPreview()">
+    </div>
+    <div id="deleteMonthPreview" style="font-size:.82rem;color:var(--teal-light);margin-bottom:1.25rem;min-height:1.2em"></div>
+    <div style="display:flex;gap:.75rem">
+      <button class="submit-btn" onclick="confirmDeleteMonth()" style="flex:1;background:rgba(201,64,64,0.5)">✂️ Borrar mes</button>
+      <button class="submit-btn" onclick="closeModal('deleteMonthModal')" style="background:rgba(255,255,255,0.08);box-shadow:none">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit modal -->
 <div class="modal-bg" id="editModal">
   <div class="modal-box">
@@ -410,15 +430,7 @@
         <button class="submit-btn" onclick="exportCSV()" style="flex:1">↓ Exportar CSV completo</button>
         <label class="submit-btn" for="importFileInput" style="flex:1;background:rgba(74,144,144,0.3);box-shadow:none;cursor:pointer;text-align:center">↑ Importar CSV</label>
       </div>
-      <div style="margin-top:.75rem">
-        <label class="form-label" style="margin-bottom:.4rem;display:block">Borrar datos por mes</label>
-        <div style="display:flex;gap:.5rem;align-items:center">
-          <select id="mesBorrarSelect" style="flex:1;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.55rem .75rem;font-size:.85rem">
-            <option value="">— Selecciona un mes —</option>
-          </select>
-          <button onclick="borrarMes()" style="flex-shrink:0;padding:.55rem .9rem;background:rgba(201,64,64,0.3);color:var(--white);border:none;border-radius:.6rem;cursor:pointer;font-size:.85rem">🗑</button>
-        </div>
-      </div>
+      <button class="submit-btn" onclick="openDeleteMonth()" style="margin-top:.75rem;background:rgba(201,64,64,0.3);box-shadow:none">🗑 Borrar datos de un mes</button>
     </div>
   </div>
 
