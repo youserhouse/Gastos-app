@@ -203,31 +203,50 @@
 </div>
 
 <header>
-  <div style="display:flex;align-items:center;gap:.4rem;min-width:0">
-    <div class="logo" style="font-size:1.1rem;white-space:nowrap">Gastos <em>Pareja</em></div>
-    <div style="display:flex;align-items:center;gap:.25rem;flex-shrink:0" title="Estado de sincronización">
+  <button id="menuBtn" onclick="openDrawer()" aria-label="Menú" title="Menú">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo">Gastos <em>Pareja</em></div>
+  <div class="header-actions">
+    <div style="display:flex;align-items:center;gap:.25rem" title="Estado de sincronización">
       <div class="sync-dot" id="syncDot"></div>
       <span id="syncLabel" style="font-size:.6rem;color:var(--text2);white-space:nowrap">sync</span>
     </div>
-  </div>
-  <div class="header-actions" style="gap:.35rem;flex-shrink:0">
     <button id="themeToggle" onclick="toggleTheme()" title="Cambiar tema"
-      style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">🌙</button>
-    <button class="pill-btn" onclick="doLogout()" id="logoutBtn" style="display:none;padding:.35rem .65rem;font-size:.72rem">Salir</button>
-    <button class="pill-btn" onclick="exportCSV()" style="padding:.35rem .65rem;font-size:.72rem">↓ CSV</button>
-    <label class="pill-btn" for="importFileInput" style="cursor:pointer;padding:.35rem .65rem;font-size:.72rem">↑ CSV</label>
-    <input type="file" id="importFileInput" accept=".csv" style="display:none;position:absolute" onchange="importCSV(this)">
+      style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center">🌙</button>
   </div>
 </header>
 
-<nav class="nav-tabs">
-  <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-  <button class="tab-btn" onclick="switchTab('gastos')">➕ Añadir gasto</button>
-  <button class="tab-btn" onclick="switchTab('ingresos')">💰 Ingresos</button>
-  <button class="tab-btn" onclick="switchTab('lista')">📋 Todos los gastos</button>
-  <button class="tab-btn" onclick="switchTab('scanner')">📷 Escáner IA</button>
-  <button class="tab-btn" onclick="switchTab('presupuesto')">🎯 Presupuestos</button>
-  <button class="tab-btn" onclick="switchTab('config')">⚙ Config</button>
+<!-- Drawer overlay -->
+<div id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- Left Drawer -->
+<nav id="leftDrawer">
+  <div class="drawer-header">
+    <span class="logo" style="font-size:1rem">Gastos <em>Pareja</em></span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <ul class="drawer-nav">
+    <li class="drawer-item active" onclick="switchTab('dashboard');closeDrawer()" data-tab="dashboard">
+      <span class="drawer-icon">🏠</span> Dashboard
+    </li>
+    <li class="drawer-item" onclick="switchTab('lista');closeDrawer()" data-tab="lista">
+      <span class="drawer-icon">📋</span> Todos los gastos
+    </li>
+    <li class="drawer-item" onclick="switchTab('scanner');closeDrawer()" data-tab="scanner">
+      <span class="drawer-icon">📷</span> Escáner IA
+    </li>
+    <li class="drawer-item" onclick="switchTab('presupuesto');closeDrawer()" data-tab="presupuesto">
+      <span class="drawer-icon">🎯</span> Presupuesto
+    </li>
+    <li class="drawer-item" onclick="switchTab('config');closeDrawer()" data-tab="config">
+      <span class="drawer-icon">⚙️</span> Configuración
+    </li>
+  </ul>
+  <div class="drawer-footer">
+    <button class="pill-btn" onclick="doLogout()" id="logoutBtn" style="display:none;font-size:.8rem">Salir</button>
+    <input type="file" id="importFileInput" accept=".csv" style="display:none;position:absolute" onchange="importCSV(this)">
+  </div>
 </nav>
 
 <div class="container">
@@ -552,6 +571,19 @@
   <button class="success-banner-undo" onclick="undoLastGasto()">Deshacer</button>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- FAB: floating action button -->
+<div id="fabWrap">
+  <div id="fabMenu">
+    <button class="fab-option" onclick="switchTab('ingresos');closeFab()">
+      <span>💰</span> Añadir ingresos
+    </button>
+    <button class="fab-option" onclick="switchTab('gastos');closeFab()">
+      <span>💸</span> Añadir gasto
+    </button>
+  </div>
+  <button id="fabBtn" onclick="toggleFab()" aria-label="Añadir">+</button>
+</div>
 
 <!-- Firebase SDK — must load before app script -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>

@@ -711,3 +711,112 @@ html[data-color="coral"] {
 @keyframes splashSpin { to { transform:rotate(360deg); } }
 
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════════════════════════════
+   DRAWER NAVIGATION
+═══════════════════════════════════════════════════════════ */
+#drawerOverlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 199; opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+#drawerOverlay.open { opacity: 1; pointer-events: all; }
+
+#leftDrawer {
+  position: fixed; top: 0; left: -280px; height: 100vh; width: 260px;
+  background: var(--surface); border-right: 1px solid var(--border);
+  z-index: 200; transition: left .25s ease;
+  display: flex; flex-direction: column;
+}
+#leftDrawer.open { left: 0; }
+
+.drawer-header {
+  padding: 1.1rem 1rem .9rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.drawer-close {
+  background: none; border: none; color: var(--gray);
+  font-size: 1rem; cursor: pointer; padding: .25rem .4rem;
+  border-radius: .4rem; line-height: 1;
+}
+.drawer-close:hover { background: rgba(255,255,255,0.08); }
+
+.drawer-nav {
+  list-style: none; padding: .6rem 0; margin: 0;
+  flex: 1; overflow-y: auto;
+}
+.drawer-item {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .78rem 1rem; cursor: pointer;
+  font-size: .88rem; color: var(--text2);
+  transition: background .15s, color .15s;
+  border-radius: 0 2rem 2rem 0; margin-right: .75rem;
+  user-select: none;
+}
+.drawer-item:hover { background: rgba(125,191,191,0.1); color: var(--white); }
+.drawer-item.active { background: rgba(45,106,106,0.2); color: var(--teal-light); font-weight: 600; }
+.drawer-icon { font-size: 1.05rem; width: 1.4rem; text-align: center; flex-shrink: 0; }
+
+.drawer-footer {
+  padding: .9rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Hamburger button */
+#menuBtn {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: .4rem; border-radius: .4rem; flex-shrink: 0;
+}
+#menuBtn span {
+  display: block; width: 20px; height: 2px;
+  background: var(--white); border-radius: 2px;
+}
+#menuBtn:hover { background: rgba(255,255,255,0.08); }
+
+/* ═══════════════════════════════════════════════════════════
+   FAB — Floating Action Button
+═══════════════════════════════════════════════════════════ */
+#fabWrap {
+  position: fixed; bottom: 1.5rem; right: 1.25rem;
+  z-index: 150; display: flex; flex-direction: column;
+  align-items: flex-end; gap: .55rem;
+}
+#fabBtn {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--teal-light); color: #fff; border: none;
+  font-size: 2rem; line-height: 1; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .25s, background .2s;
+  flex-shrink: 0;
+}
+#fabBtn:hover { background: var(--accent); }
+#fabBtn.open { transform: rotate(45deg); }
+
+#fabMenu {
+  display: flex; flex-direction: column; align-items: flex-end; gap: .4rem;
+  overflow: hidden; max-height: 0;
+  transition: max-height .25s ease, opacity .2s;
+  opacity: 0; pointer-events: none;
+}
+#fabMenu.open { max-height: 200px; opacity: 1; pointer-events: all; }
+
+.fab-option {
+  display: flex; align-items: center; gap: .55rem;
+  background: var(--surface);
+  color: var(--white);
+  border: 1px solid rgba(125,191,191,0.2);
+  border-radius: 2rem;
+  padding: .55rem 1.1rem .55rem .85rem;
+  cursor: pointer; font-size: .84rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  white-space: nowrap;
+  transition: background .15s;
+}
+.fab-option:hover { background: rgba(45,106,106,0.4); }
+
+/* Hide old nav-tabs, keep container full height */
+.nav-tabs { display: none !important; }
+.container { padding-top: .75rem; }

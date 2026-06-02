@@ -75,23 +75,51 @@ function applyConfig() {
 // TABS
 // ═══════════════════════════════════════════════════════════════════
 function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const panels = ['dashboard','gastos','ingresos','lista','scanner','presupuesto','config'];
-    b.classList.toggle('active', panels[i] === name);
-  });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
+  const panel = document.getElementById('panel-'+name);
+  if (panel) panel.classList.add('active');
+
+  // Update drawer active item
+  document.querySelectorAll('.drawer-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === name);
+  });
+
   history.replaceState(null, '', '#' + name);
   if (name==='dashboard') renderDashboard();
   if (name==='lista') renderLista();
   if (name==='ingresos') renderIngresos();
   if (name==='presupuesto') { onBudgetTypeChange(); renderBudgetRows(); renderSavedBudgets(); }
   if (name==='config') { renderThemeSwatches(); loadAnthropicKeyToInput(); renderInfoPareja(); }
-  // Show API key warning banner in scanner tab if key is set
   if (name==='scanner') {
     const warn = document.getElementById('scanner-api-warning');
     if (warn) warn.style.display = getAnthropicKey() ? 'block' : 'none';
   }
+  // Close FAB if open
+  closeFab();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════════════════════════════
+function openDrawer() {
+  document.getElementById('leftDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('leftDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FAB
+// ═══════════════════════════════════════════════════════════════════
+function toggleFab() {
+  document.getElementById('fabBtn').classList.toggle('open');
+  document.getElementById('fabMenu').classList.toggle('open');
+}
+function closeFab() {
+  document.getElementById('fabBtn').classList.remove('open');
+  document.getElementById('fabMenu').classList.remove('open');
 }
 
 // ═══════════════════════════════════════════════════════════════════
