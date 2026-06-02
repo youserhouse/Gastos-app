@@ -6,16 +6,18 @@ function openBankImport() {
   document.getElementById('bankIgnorePositive').checked = true;
   window._bankImportItems = null;
 
-  // Populate category select
-  const cats   = getCats().map(c => c.name);
-  const defCat = cats[cats.length - 1] || 'Otros';
+  // Categories from budgets (entries with importe > 0), fallback to all cats
+  const budgetCats = [...new Set(
+    (state.presupuestos || []).flatMap(p => p.entries || []).map(e => e.cat)
+  )];
+  const cats   = budgetCats.length ? budgetCats : getCats().map(c => c.name);
   const catSel = document.getElementById('bankImportCat');
-  catSel.innerHTML = cats.map(c => `<option value="${c}"${c === defCat ? ' selected' : ''}>${c}</option>`).join('');
+  catSel.innerHTML = cats.map((c, i) => `<option value="${c}"${i===0?' selected':''}>${c}</option>`).join('');
 
-  // Populate payer select
-  const payers  = [state.config.p1, state.config.p2].filter(Boolean);
-  const paySel  = document.getElementById('bankImportPayer');
-  paySel.innerHTML = payers.map(p => `<option value="${p}">${p}</option>`).join('');
+  // Payer select
+  const payers = [state.config.p1, state.config.p2].filter(Boolean);
+  document.getElementById('bankImportPayer').innerHTML =
+    payers.map(p => `<option value="${p}">${p}</option>`).join('');
 
   openModal('bankImportModal');
 }
