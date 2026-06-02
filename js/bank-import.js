@@ -5,6 +5,18 @@ function openBankImport() {
   document.getElementById('bankPreviewWrap').innerHTML = '';
   document.getElementById('bankIgnorePositive').checked = true;
   window._bankImportItems = null;
+
+  // Populate category select
+  const cats   = getCats().map(c => c.name);
+  const defCat = cats[cats.length - 1] || 'Otros';
+  const catSel = document.getElementById('bankImportCat');
+  catSel.innerHTML = cats.map(c => `<option value="${c}"${c === defCat ? ' selected' : ''}>${c}</option>`).join('');
+
+  // Populate payer select
+  const payers  = [state.config.p1, state.config.p2].filter(Boolean);
+  const paySel  = document.getElementById('bankImportPayer');
+  paySel.innerHTML = payers.map(p => `<option value="${p}">${p}</option>`).join('');
+
   openModal('bankImportModal');
 }
 
@@ -148,16 +160,12 @@ function _renderBankPreview(items) {
   const visible   = ignorePos ? items.filter(i => i.type === 'gasto') : items;
   const gastos    = visible.filter(i => i.type === 'gasto');
   const ingresos  = visible.filter(i => i.type === 'ingreso');
-  const payers    = [state.config.p1, state.config.p2].filter(Boolean);
-  const cats      = getCats().map(c => c.name);
-  const defCat    = cats[cats.length - 1] || 'Otros';
 
   document.getElementById('bankPreviewWrap').innerHTML = `
     <p style="font-size:.82rem;color:var(--accent);font-weight:600;margin-bottom:.5rem">
-      Vista previa — ${gastos.length} gasto${gastos.length!==1?'s':''} encontrado${gastos.length!==1?'s':''}
-      ${ingresos.length ? ` y ${ingresos.length} ingreso${ingresos.length!==1?'s':''}` : ''}
+      Vista previa — ${gastos.length} gasto${gastos.length!==1?'s':''} encontrado${gastos.length!==1?'s':''}${ingresos.length ? ` y ${ingresos.length} ingreso${ingresos.length!==1?'s':''}` : ''}
     </p>
-    <div style="max-height:200px;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:.5rem;margin-bottom:.75rem">
+    <div style="max-height:190px;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:.5rem;margin-bottom:.75rem">
       <table style="width:100%;border-collapse:collapse;font-size:.77rem">
         <thead><tr style="background:rgba(255,255,255,0.06)">
           <th style="padding:.35rem .5rem;text-align:left;color:var(--gray)">Fecha</th>
@@ -174,18 +182,10 @@ function _renderBankPreview(items) {
         </tbody>
       </table>
     </div>
-    ${visible.length>60?`<p style="font-size:.74rem;color:var(--gray);margin-bottom:.5rem">Mostrando 60 de ${visible.length} transacciones</p>`:''}
-    <label class="form-label" style="margin-bottom:.3rem">Categoría por defecto</label>
-    <select id="bankImportCat" style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem;margin-bottom:.75rem">
-      ${cats.map(c=>`<option value="${c}"${c===defCat?' selected':''}>${c}</option>`).join('')}
-    </select>
-    <label class="form-label" style="margin-bottom:.3rem">Pagado por</label>
-    <select id="bankImportPayer" style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem;margin-bottom:.75rem">
-      ${payers.map(p=>`<option value="${p}">${p}</option>`).join('')}
-    </select>
+    ${visible.length>60?`<p style="font-size:.74rem;color:var(--gray);margin-bottom:.5rem">Mostrando 60 de ${visible.length}</p>`:''}
     <div style="display:flex;gap:.75rem">
       <button class="submit-btn" onclick="confirmBankImport()" style="flex:1">
-        ✓ Importar ${gastos.length} gasto${gastos.length!==1?'s':''}${ingresos.length?` y ${ingresos.length} ingreso${ingresos.length!==1?'s':''}`:''}
+        ✓ Importar ${visible.length} transacci${visible.length!==1?'ones':'ón'}
       </button>
       <button class="submit-btn" onclick="closeModal('bankImportModal')" style="flex:1;background:rgba(255,255,255,0.08);box-shadow:none">Cancelar</button>
     </div>
