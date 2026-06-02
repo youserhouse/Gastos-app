@@ -62,6 +62,18 @@
         <span style="color:var(--gray);font-size:.78rem">(ingresos y devoluciones)</span>
       </span>
     </label>
+    <div style="display:flex;gap:.75rem;margin-bottom:.75rem">
+      <div style="flex:1">
+        <label class="form-label" style="margin-bottom:.3rem">Categoría por defecto</label>
+        <select id="bankImportCat" style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem">
+        </select>
+      </div>
+      <div style="flex:1">
+        <label class="form-label" style="margin-bottom:.3rem">Pagado por</label>
+        <select id="bankImportPayer" style="width:100%;background:var(--surface);color:var(--white);border:1px solid rgba(255,255,255,0.12);border-radius:.6rem;padding:.5rem .75rem">
+        </select>
+      </div>
+    </div>
     <div id="bankPreviewWrap"></div>
     <button class="submit-btn" onclick="closeModal('bankImportModal')"
             style="margin-top:.5rem;width:100%;background:rgba(255,255,255,0.08);box-shadow:none">Cancelar</button>
