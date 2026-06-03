@@ -716,7 +716,7 @@ html[data-color="coral"] {
    DRAWER NAVIGATION
 ═══════════════════════════════════════════════════════════ */
 #drawerOverlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.3);
   z-index: 199; opacity: 0; pointer-events: none;
   transition: opacity .25s;
 }
@@ -724,7 +724,9 @@ html[data-color="coral"] {
 
 #leftDrawer {
   position: fixed; top: 0; left: -280px; height: 100vh; width: 260px;
-  background: var(--surface); border-right: 1px solid var(--border);
+  background: rgba(14,28,28,0.68);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-right: 1px solid rgba(125,191,191,0.15);
   z-index: 200; transition: left .25s ease;
   display: flex; flex-direction: column;
 }
@@ -732,7 +734,7 @@ html[data-color="coral"] {
 
 .drawer-header {
   padding: 1.1rem 1rem .9rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(125,191,191,0.12);
   display: flex; align-items: center; justify-content: space-between;
 }
 .drawer-close {
@@ -760,7 +762,7 @@ html[data-color="coral"] {
 
 .drawer-footer {
   padding: .9rem 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(125,191,191,0.12);
 }
 
 /* Hamburger button */
@@ -805,17 +807,18 @@ html[data-color="coral"] {
 
 .fab-option {
   display: flex; align-items: center; gap: .55rem;
-  background: var(--surface);
+  background: rgba(14,28,28,0.62);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   color: var(--white);
-  border: 1px solid rgba(125,191,191,0.2);
+  border: 1px solid rgba(125,191,191,0.25);
   border-radius: 2rem;
   padding: .55rem 1.1rem .55rem .85rem;
   cursor: pointer; font-size: .84rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
   white-space: nowrap;
   transition: background .15s;
 }
-.fab-option:hover { background: rgba(45,106,106,0.4); }
+.fab-option:hover { background: rgba(45,106,106,0.5); }
 
 /* Hide old nav-tabs, keep container full height */
 .nav-tabs { display: none !important; }
