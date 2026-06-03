@@ -233,9 +233,6 @@
     <li class="drawer-item" onclick="switchTab('lista');closeDrawer()" data-tab="lista">
       <span class="drawer-icon">📋</span> Todos los gastos
     </li>
-    <li class="drawer-item" onclick="switchTab('scanner');closeDrawer()" data-tab="scanner">
-      <span class="drawer-icon">📷</span> Escáner IA
-    </li>
     <li class="drawer-item" onclick="switchTab('presupuesto');closeDrawer()" data-tab="presupuesto">
       <span class="drawer-icon">🎯</span> Presupuesto
     </li>
@@ -575,6 +572,9 @@
 <!-- FAB: floating action button -->
 <div id="fabWrap">
   <div id="fabMenu">
+    <button class="fab-option" onclick="switchTab('scanner');closeFab()">
+      <span>📷</span> Escáner IA
+    </button>
     <button class="fab-option" onclick="switchTab('ingresos');closeFab()">
       <span>💰</span> Añadir ingresos
     </button>
